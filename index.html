@@ -70,6 +70,31 @@
     if (e.key === 'ArrowLeft')  $('#flipbook').turn('previous');
   });
 })();
+
+// Detectar click o tap para pasar página
+flip.addEventListener('click', function (e) {
+  const rect = flip.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const middle = rect.width / 2;
+
+  if (clickX < middle) {
+    $('#flipbook').turn('previous');
+  } else {
+    $('#flipbook').turn('next');
+  }
+});
+
+// Para soporte táctil en móviles
+flip.addEventListener('touchstart', function (e) {
+  const touchX = e.touches[0].clientX - flip.getBoundingClientRect().left;
+  const middle = flip.clientWidth / 2;
+
+  if (touchX < middle) {
+    $('#flipbook').turn('previous');
+  } else {
+    $('#flipbook').turn('next');
+  }
+});
 </script>
 </body>
 </html>
