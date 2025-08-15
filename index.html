@@ -5,22 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mi Flipbook</title>
 
-  <!-- CSS DearFlip -->
-  <link rel="stylesheet" href="dflip/css/dflip.min.css">
+  <!-- Estilos de Flipbook-Vue -->
+  <link rel="stylesheet" href="https://unpkg.com/flipbook-vue@1.0.0-beta.4/dist/flipbook.css">
 
   <style>
     body {
       margin: 0;
       padding: 0;
       background: #222;
-      overflow: hidden; /* scroll invisible */
+      overflow: hidden;
     }
-
-    #flipbook {
-      width: 100%;
+    .flipbook {
+      width: 100vw;
       height: 100vh;
     }
-
     #pageHint {
       position: fixed;
       bottom: 20px;
@@ -41,35 +39,31 @@
 <body>
 
   <!-- Flipbook -->
-  <div id="flipbook" class="_df_book" source="assets/pages"></div>
+  <flipbook class="flipbook" :pages="['assets/pages/1.jpg', 'assets/pages/2.jpg', 'assets/pages/3.jpg']"></flipbook>
 
   <!-- Mensaje flotante -->
   <div id="pageHint">Pasa las páginas ➜</div>
 
-  <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <!-- DearFlip JS -->
-  <script src="dflip/js/dflip.min.js"></script>
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3.2.45/dist/vue.global.js"></script>
+  <!-- Flipbook-Vue -->
+  <script src="https://unpkg.com/flipbook-vue@1.0.0-beta.4/dist/flipbook.min.js"></script>
 
   <script>
-    $(document).ready(function() {
-      // Inicializar DearFlip
-      $('#flipbook').dflip({
-        layout: window.innerWidth <= 768 ? 'single' : 'double',
-        acceleration: true,
-        duration: 500
-      });
+    const { createApp } = Vue;
 
-      // Mensaje flotante
-      const hint = document.getElementById('pageHint');
-      if (window.innerWidth <= 768) {
-        hint.style.opacity = 1;
-        setTimeout(() => { hint.style.opacity = 0; }, 3000);
+    createApp({
+      components: {
+        Flipbook
+      },
+      mounted() {
+        const hint = document.getElementById('pageHint');
+        if (window.innerWidth <= 768) {
+          hint.style.opacity = 1;
+          setTimeout(() => { hint.style.opacity = 0; }, 3000);
+        }
       }
-
-      // Mostrar hint en PC al hover
-      $('#flipbook').hover(() => { hint.style.opacity = 1; }, () => { hint.style.opacity = 0; });
-    });
+    }).mount('body');
   </script>
 
 </body>
