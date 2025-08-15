@@ -10,16 +10,15 @@
     height: 100%;
     margin: 0;
     background: var(--bg);
-    overflow: hidden; /* oculta scroll visualmente */
+    overflow: hidden;            /* oculta barras visualmente */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none;       /* Firefox: oculta barra */
   }
-  body::-webkit-scrollbar { display: none; } /* Chrome, Safari */
+  body::-webkit-scrollbar { display: none; } /* Chrome/Safari: oculta barra */
 
-  body.zoomed {
-    overflow: auto; /* si activas esta clase en JS, el scroll vuelve */
-  }
+  /* Si alguna vez quieres mostrar scroll (por ejemplo tras un zoom manual), añade body.zoomed desde JS */
+  body.zoomed { overflow: auto; }
 
   body {
     display: flex;
@@ -30,15 +29,17 @@
   #flipbook {
     box-shadow: 0 10px 30px rgba(0,0,0,.6);
     background: #000;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
-  #flipbook .page {
-    background: #111;
-  }
+  #flipbook .page { background: #111; }
   #flipbook img {
     width: 100%;
     height: 100%;
     object-fit: contain;
     display: block;
+    user-select: none;
+    -webkit-user-drag: none;
   }
 
   /* Mensaje flotante */
@@ -58,9 +59,7 @@
     z-index: 1000;
   }
   /* Hover en PC */
-  #flipbook:hover + #pageHint {
-    opacity: 1;
-  }
+  #flipbook:hover + #pageHint { opacity: 1; }
 </style>
 </head>
 <body>
@@ -68,16 +67,16 @@
 <div id="flipbook"></div>
 <div id="pageHint">Pasa las páginas ➜</div>
 
-<!-- jQuery -->
+<!-- jQuery (si luego quieres offline, bájalo y cámbialo por ruta local) -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <!-- Turn.js local -->
 <script src="./turn.min.js"></script>
 
 <script>
 (function () {
-  // CONFIGURA cuántas páginas tienes (1.png, 2.png, 3.png, ...)
-  const TOTAL_PAGES = 4;                 // <-- ajusta este número
-  const EXT = 'png';                     // <-- tu extensión real
+  // === CONFIGURACIÓN BÁSICA ===
+  const TOTAL_PAGES = 4;   // <-- ajusta este número
+  const EXT = 'png';       // <-- tu extensión real (png/jpg/webp)
   const isSingle = matchMedia('(max-width: 768px)').matches;
 
   // Dimensiones: alto según pantalla, ancho proporcional (A4 ~0.707)
@@ -96,6 +95,7 @@
     const img = document.createElement('img');
     img.alt = 'Página ' + i;
     img.src = `./assets/pages/${i}.${EXT}`;
+    img.setAttribute('draggable', 'false');
     page.appendChild(img);
     flip.appendChild(page);
   }
@@ -110,14 +110,26 @@
     elevation: 50
   });
 
-  // Navegación con teclado
+  // Navegación con teclado (PC)
   window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') $('#flipbook').turn('next');
     if (e.key === 'ArrowLeft')  $('#flipbook').turn('previous');
   });
 
-  // Click para pasar página en PC
+  // Evitar arrastre de imágenes
+  flip.addEventListener('dragstart', (e) => e.preventDefault());
+
+  // === CONTROL DE CLICK/TAP ===
+  // Problema resuelto: en móviles, un tap genera touchend + (luego) un click "fantasma".
+  // Usamos un timestamp para ignorar el click si justo venimos de un tap táctil.
+  let lastTouchTap = 0;      // marca de tiempo del último tap táctil
+  let touchMoved   = false;  // si se movió (swipe), dejamos que Turn.js haga su magia
+
+  // Click (PC + posible ghost click en móvil)
   flip.addEventListener('click', function (e) {
+    // Ignorar el click si ocurrió muy cerca de un tap táctil previo
+    if (Date.now() - lastTouchTap < 600) return;
+
     const rect = flip.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const middle = rect.width / 2;
@@ -129,21 +141,25 @@
     }
   });
 
-  // Tap en móviles: evitar doble avance
-  let touchMoved = false;
-
+  // Tap en móviles: SOLO si no hubo movimiento (no interferimos con el swipe de Turn.js)
   flip.addEventListener('touchstart', function () {
     touchMoved = false;
-  });
+  }, { passive: true });
 
   flip.addEventListener('touchmove', function () {
-    touchMoved = true;
-  });
+    touchMoved = true; // hubo desplazamiento => es swipe, lo maneja Turn.js
+  }, { passive: true });
 
   flip.addEventListener('touchend', function (e) {
+    // Si fue un TAP (sin movimiento), pasamos página manualmente
     if (!touchMoved) {
-      const touchX = e.changedTouches[0].clientX - flip.getBoundingClientRect().left;
-      const middle = flip.clientWidth / 2;
+      // Evita el click "fantasma" que dispara después del touchend
+      e.preventDefault();
+      lastTouchTap = Date.now();
+
+      const rect = flip.getBoundingClientRect();
+      const touchX = e.changedTouches[0].clientX - rect.left;
+      const middle = rect.width / 2;
 
       if (touchX < middle) {
         $('#flipbook').turn('previous');
@@ -151,7 +167,7 @@
         $('#flipbook').turn('next');
       }
     }
-  });
+  }, { passive: false }); // importante: passive:false para que preventDefault bloquee el ghost click
 
   // Mostrar mensaje en móviles al cargar (3s)
   if (isSingle) {
@@ -159,7 +175,6 @@
     hint.style.opacity = 1;
     setTimeout(() => { hint.style.opacity = 0; }, 3000);
   }
-
 })();
 </script>
 
