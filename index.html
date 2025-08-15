@@ -78,6 +78,7 @@
   const TOTAL_PAGES = 4;   // <-- ajusta este número
   const EXT = 'png';       // <-- tu extensión real (png/jpg/webp)
   const isSingle = matchMedia('(max-width: 768px)').matches;
+  const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
   // Dimensiones: alto según pantalla, ancho proporcional (A4 ~0.707)
   const pageH = Math.min(innerHeight * 0.9, 1200);
@@ -119,55 +120,18 @@
   // Evitar arrastre de imágenes
   flip.addEventListener('dragstart', (e) => e.preventDefault());
 
-  // === CONTROL DE CLICK/TAP ===
-  // Problema resuelto: en móviles, un tap genera touchend + (luego) un click "fantasma".
-  // Usamos un timestamp para ignorar el click si justo venimos de un tap táctil.
-  let lastTouchTap = 0;      // marca de tiempo del último tap táctil
-  let touchMoved   = false;  // si se movió (swipe), dejamos que Turn.js haga su magia
-
-  // Click (PC + posible ghost click en móvil)
-  flip.addEventListener('click', function (e) {
-    // Ignorar el click si ocurrió muy cerca de un tap táctil previo
-    if (Date.now() - lastTouchTap < 600) return;
-
-    const rect = flip.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const middle = rect.width / 2;
-
-    if (clickX < middle) {
-      $('#flipbook').turn('previous');
-    } else {
-      $('#flipbook').turn('next');
-    }
-  });
-
-  // Tap en móviles: SOLO si no hubo movimiento (no interferimos con el swipe de Turn.js)
-  flip.addEventListener('touchstart', function () {
-    touchMoved = false;
-  }, { passive: true });
-
-  flip.addEventListener('touchmove', function () {
-    touchMoved = true; // hubo desplazamiento => es swipe, lo maneja Turn.js
-  }, { passive: true });
-
-  flip.addEventListener('touchend', function (e) {
-    // Si fue un TAP (sin movimiento), pasamos página manualmente
-    if (!touchMoved) {
-      // Evita el click "fantasma" que dispara después del touchend
-      e.preventDefault();
-      lastTouchTap = Date.now();
-
-      const rect = flip.getBoundingClientRect();
-      const touchX = e.changedTouches[0].clientX - rect.left;
-      const middle = rect.width / 2;
-
-      if (touchX < middle) {
+  // === CLICK SOLO EN PC (tap desactivado en móviles) ===
+  if (!isMobile) {
+    flip.addEventListener('click', function (e) {
+      const clickX = e.clientX - flip.getBoundingClientRect().left;
+      const middle = flip.clientWidth / 2;
+      if (clickX < middle) {
         $('#flipbook').turn('previous');
       } else {
         $('#flipbook').turn('next');
       }
-    }
-  }, { passive: false }); // importante: passive:false para que preventDefault bloquee el ghost click
+    });
+  }
 
   // Mostrar mensaje en móviles al cargar (3s)
   if (isSingle) {
@@ -175,8 +139,10 @@
     hint.style.opacity = 1;
     setTimeout(() => { hint.style.opacity = 0; }, 3000);
   }
+
 })();
 </script>
+
 
 </body>
 </html>
