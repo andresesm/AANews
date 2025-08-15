@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mi Flipbook</title>
+  <!-- CSS DearFlip -->
   <link rel="stylesheet" href="dflip/css/dflip.min.css">
   <style>
-    /* Estilos personalizados */
     body {
       margin: 0;
       padding: 0;
-      background: #f4f4f4;
+      background: #222;
+      overflow: hidden; /* scroll invisible */
     }
     #flipbook {
       width: 100%;
@@ -21,7 +22,7 @@
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0,0,0,0.7);
       color: white;
       padding: 10px 20px;
       border-radius: 20px;
@@ -29,30 +30,41 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s;
+      z-index: 1000;
     }
   </style>
 </head>
 <body>
 
-  <!-- Contenedor del flipbook -->
+  <!-- Flipbook -->
   <div id="flipbook" class="_df_book" source="assets/pages"></div>
 
   <!-- Mensaje flotante -->
   <div id="pageHint">Pasa las páginas ➜</div>
 
+  <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- DearFlip JS -->
   <script src="dflip/js/dflip.min.js"></script>
+
   <script>
     $(document).ready(function() {
-      // Inicializar el flipbook
-      $('#flipbook').dflip();
+      // Inicializar DearFlip
+      const flipbook = $('#flipbook').dflip({
+        layout: window.innerWidth <= 768 ? 'single' : 'double', // responsive
+        acceleration: true, // usar GPU
+        duration: 500 // animación más fluida
+      });
 
-      // Mostrar mensaje en dispositivos móviles
+      // Mensaje flotante
+      const hint = document.getElementById('pageHint');
       if (window.innerWidth <= 768) {
-        const hint = document.getElementById('pageHint');
         hint.style.opacity = 1;
         setTimeout(() => { hint.style.opacity = 0; }, 3000);
       }
+
+      // Mostrar hint en PC al hover
+      $('#flipbook').hover(() => { hint.style.opacity = 1; }, () => { hint.style.opacity = 0; });
     });
   </script>
 
