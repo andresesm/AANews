@@ -1,62 +1,75 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Revista</title>
 <style>
-  body {
-    margin: 0;
-    background: #333;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+  :root { --bg:#222; }
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); display:flex; align-items:center; justify-content:center;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
   }
-  #flipbook {
-    width: 90%;
-    height: 90%;
-  }
-  #flipbook .page {
-    background: white;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  }
-  #flipbook img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
+  #flipbook{ box-shadow:0 10px 30px rgba(0,0,0,.6); background:#000; }
+  #flipbook .page{ background:#111; }
+  #flipbook img{ width:100%; height:100%; object-fit:contain; display:block; }
 </style>
 </head>
 <body>
 
-<div id="flipbook">
-  <div class="page"><img src="assets/pages/1.png" alt="Página 1"></div>
-  <div class="page"><img src="assets/pages/2.png" alt="Página 2"></div>
-  <div class="page"><img src="assets/pages/3.png" alt="Página 3"></div>
-  <div class="page"><img src="assets/pages/4.png" alt="Página 4"></div>
-</div>
+<div id="flipbook"></div>
 
-<script src="turn.min.js"></script>
+<!-- 1) jQuery SIEMPRE antes que turn.js -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Si prefieres 100% offline, descarga este archivo y cámbialo por ./assets/js/jquery-3.7.1.min.js -->
+
+<!-- 2) Turn.js local (usa solo turn.min.js o turn.js, no ambos) -->
+<script src="./turn.min.js"></script>
+
 <script>
-  function initFlipbook() {
-    const isMobile = window.innerWidth <= 768;
-    $("#flipbook").turn({
-      width: isMobile ? 400 : 800,
-      height: 600,
-      autoCenter: true,
-      display: isMobile ? "single" : "double"
-    });
+(function () {
+  // CONFIGURA cuántas páginas tienes (1.png, 2.png, 3.png, ...)
+  const TOTAL_PAGES = 4;                 // <-- ajusta este número
+  const EXT = 'png';                     // <-- tu extensión real
+  const isSingle = matchMedia('(max-width: 768px)').matches;
+
+  // Dimensiones: alto según pantalla, ancho proporcional (A4 ~0.707)
+  const pageH = Math.min(innerHeight * 0.9, 1200);
+  const pageW = Math.round(pageH * 0.707);
+  const bookW = isSingle ? pageW : pageW * 2;
+
+  // Crear páginas dinámicamente
+  const flip = document.getElementById('flipbook');
+  flip.style.width = bookW + 'px';
+  flip.style.height = pageH + 'px';
+
+  for (let i = 1; i <= TOTAL_PAGES; i++) {
+    const page = document.createElement('div');
+    page.className = 'page';
+    const img = document.createElement('img');
+    img.alt = 'Página ' + i;
+    img.src = `./assets/pages/${i}.${EXT}`;
+    page.appendChild(img);
+    flip.appendChild(page);
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    initFlipbook();
-    window.addEventListener("resize", () => {
-      $("#flipbook").turn("destroy").remove();
-      location.reload();
-    });
+  // Inicializar Turn.js
+  $('#flipbook').turn({
+    width: bookW,
+    height: pageH,
+    display: isSingle ? 'single' : 'double',
+    autoCenter: true,
+    gradients: true,
+    elevation: 50
   });
+
+  // Navegación con flechas
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') $('#flipbook').turn('next');
+    if (e.key === 'ArrowLeft')  $('#flipbook').turn('previous');
+  });
+})();
 </script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </body>
 </html>
