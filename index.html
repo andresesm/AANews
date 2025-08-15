@@ -101,14 +101,16 @@
     flip.appendChild(page);
   }
 
-  // Inicializar Turn.js
+  // Inicializar Turn.js con animación más rápida y aceleración (GPU)
   $('#flipbook').turn({
     width: bookW,
     height: pageH,
     display: isSingle ? 'single' : 'double',
     autoCenter: true,
     gradients: true,
-    elevation: 50
+    elevation: 50,
+    acceleration: true, // activa GPU
+    duration: 500       // animación más rápida y fluida
   });
 
   // Navegación con teclado (PC)
@@ -142,7 +144,5 @@
 
 })();
 </script>
-
-
 </body>
 </html>
