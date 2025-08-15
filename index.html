@@ -39,7 +39,7 @@
 <body>
 
   <!-- Flipbook -->
-  <flipbook class="flipbook" :pages="pages"></flipbook>
+  <flipbook ref="flipbook" class="flipbook" :pages="pages"></flipbook>
 
   <!-- Mensaje flotante -->
   <div id="pageHint">Pasa las páginas ➜</div>
@@ -50,7 +50,7 @@
   <script src="https://unpkg.com/flipbook-vue@1.0.0-beta.4/dist/flipbook.min.js"></script>
 
   <script>
-    const { createApp } = Vue;
+    const { createApp, nextTick } = Vue;
 
     createApp({
       components: {
@@ -58,22 +58,38 @@
       },
       data() {
         return {
-          pages: Array.from({length: 35}, (_, i) => `assets/pages/${i+1}.webp`)
+          pages: Array.from({length: 36}, (_, i) => `assets/pages/${i+1}.webp`)
         }
       },
       mounted() {
         const hint = document.getElementById('pageHint');
         const flipbookEl = document.querySelector('.flipbook');
 
-        // Mostrar mensaje en móviles al cargar
+        // Mensaje flotante en móviles al cargar
         if (window.innerWidth <= 768) {
           hint.style.opacity = 1;
           setTimeout(() => { hint.style.opacity = 0; }, 3000);
         }
 
-        // Mostrar mensaje en PC al hover
+        // Mensaje flotante en PC al hover
         flipbookEl.addEventListener('mouseenter', () => { hint.style.opacity = 0.7; });
         flipbookEl.addEventListener('mouseleave', () => { hint.style.opacity = 0; });
+
+        // Click para pasar página con cursor
+        flipbookEl.addEventListener('click', async (e) => {
+          await nextTick(); // asegurar que el componente esté montado
+          const x = e.clientX - flipbookEl.getBoundingClientRect().left;
+          const middle = flipbookEl.clientWidth / 2;
+          const flipComp = flipbookEl.__vue_app__.config.globalProperties.$refs?.flipbook;
+
+          if (!flipComp) return;
+
+          if (x < middle) {
+            flipComp.prev();
+          } else {
+            flipComp.next();
+          }
+        });
       }
     }).mount('body');
   </script>
