@@ -6,11 +6,11 @@
   <title>El Betozo ⭐</title>
 
   <!-- Favicon -->
-<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon/android-chrome-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="assets/favicon/android-chrome-512x512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon/android-chrome-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="assets/favicon/android-chrome-512x512.png">
 
-<!-- Web Manifest -->
-<link rel="manifest" href="assets/favicon/site.webmanifest">
+  <!-- Web Manifest -->
+  <link rel="manifest" href="assets/favicon/site.webmanifest">
 
   <!-- Estilos de Flipbook-Vue -->
   <link rel="stylesheet" href="https://unpkg.com/flipbook-vue@1.0.0-beta.4/dist/flipbook.css">
@@ -21,6 +21,7 @@
       padding: 0;
       background: #222;
       overflow: hidden;
+      font-family: Arial, sans-serif;
     }
     .flipbook {
       width: 100vw;
@@ -41,9 +42,40 @@
       transition: opacity 0.3s;
       z-index: 1000;
     }
+    /* Banner superior persistente */
+    #hoverBanner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      text-align: center;
+      padding: 12px 0;
+      font-size: 18px;
+      font-weight: bold;
+      z-index: 2000;
+      transition: background 0.3s ease;
+    }
+    #hoverBanner a {
+      color: #ffcc00;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    #hoverBanner:hover {
+      background: rgba(20, 20, 20, 0.95);
+    }
+    #hoverBanner a:hover {
+      color: #ffffff;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Hover persistente superior -->
+  <div id="hoverBanner">
+    <a href="https://academiaarcana.com.es/" target="_blank">🌟 Visita Academia Arcana 🌟</a>
+  </div>
 
   <!-- Flipbook -->
   <flipbook ref="flipbook" class="flipbook" :pages="pages"></flipbook>
@@ -85,7 +117,7 @@
 
         // Click para pasar página con cursor
         flipbookEl.addEventListener('click', async (e) => {
-          await nextTick(); // asegurar que el componente esté montado
+          await nextTick();
           const x = e.clientX - flipbookEl.getBoundingClientRect().left;
           const middle = flipbookEl.clientWidth / 2;
           const flipComp = flipbookEl.__vue_app__.config.globalProperties.$refs?.flipbook;
